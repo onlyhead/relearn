@@ -1,4 +1,7 @@
-# ReLearn - Reinforcement Learning Library
+<img align="right" width="26%" src="./misc/logo.png">
+
+ReLearn
+==
 
 A comprehensive header-only C++ reinforcement learning library implementing various RL algorithms organized by categories.
 

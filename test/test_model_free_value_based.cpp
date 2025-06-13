@@ -25,19 +25,19 @@ TEST_CASE("Q-Learning basic functionality") {
 
     SUBCASE("Q-learning update") {
         // Initial state 0, action 1, reward 10, next state 1
-        q_learning.update(0, 1, 10.0, 1);
+        q_learning.update(0, 1, 10.0, 1, false);
 
         // Q(0,1) should be updated: Q(0,1) = 0 + 0.1 * (10 + 0.9 * 0 - 0) = 1.0
         CHECK(q_learning.get_q_value(0, 1) == doctest::Approx(1.0));
         CHECK(q_learning.get_q_table_size() == 1);
 
         // Add another Q-value
-        q_learning.update(1, 2, 5.0, 2);
+        q_learning.update(1, 2, 5.0, 2, false);
         CHECK(q_learning.get_q_value(1, 2) == doctest::Approx(0.5));
         CHECK(q_learning.get_q_table_size() == 2);
 
         // Update existing Q-value with dependency
-        q_learning.update(0, 1, 2.0, 1);
+        q_learning.update(0, 1, 2.0, 1, false);
         // Q(0,1) = 1.0 + 0.1 * (2.0 + 0.9 * 0.5 - 1.0) = 1.0 + 0.1 * 1.45 = 1.145
         CHECK(q_learning.get_q_value(0, 1) == doctest::Approx(1.145));
     }
@@ -47,9 +47,9 @@ TEST_CASE("Q-Learning basic functionality") {
         q_learning.set_epsilon(0.0); // No exploration, always greedy
 
         // Set some Q-values
-        q_learning.update(0, 0, 1.0, 1);
-        q_learning.update(0, 1, 5.0, 1); // Best action
-        q_learning.update(0, 2, 2.0, 1);
+        q_learning.update(0, 0, 1.0, 1, false);
+        q_learning.update(0, 1, 5.0, 1, false); // Best action
+        q_learning.update(0, 2, 2.0, 1, false);
 
         // Should select action 1 (highest Q-value)
         int selected_action = q_learning.get_best_action(0);
@@ -57,9 +57,9 @@ TEST_CASE("Q-Learning basic functionality") {
     }
 
     SUBCASE("Max Q-value calculation") {
-        q_learning.update(5, 0, 3.0, 6);
-        q_learning.update(5, 1, 7.0, 6);
-        q_learning.update(5, 2, 1.0, 6);
+        q_learning.update(5, 0, 3.0, 6, false);
+        q_learning.update(5, 1, 7.0, 6, false);
+        q_learning.update(5, 2, 1.0, 6, false);
 
         CHECK(q_learning.get_max_q_value(5) == doctest::Approx(0.7));
         CHECK(q_learning.get_max_q_value(999) == doctest::Approx(0.0)); // Unknown state
@@ -83,8 +83,8 @@ TEST_CASE("Q-Learning simple grid world scenario") {
 
     // Train on a simple episode: 0 -> 1 -> 3 (goal)
     // State 3 gives reward 100, others give 0
-    agent.update(0, 3, 0.0, 1);   // Move right from 0 to 1
-    agent.update(1, 1, 100.0, 3); // Move down from 1 to 3 (goal, high reward)
+    agent.update(0, 3, 0.0, 1, false);  // Move right from 0 to 1
+    agent.update(1, 1, 100.0, 3, true); // Move down from 1 to 3 (goal, high reward)
 
     // After some updates, agent should prefer the path that leads to high reward
     CHECK(agent.get_q_value(1, 1) > agent.get_q_value(1, 0));

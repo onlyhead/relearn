@@ -170,8 +170,8 @@ int main() {
         // Train for a few episodes
         for (int episode = 0; episode < 10; ++episode) {
             // Simple episode: state 0 -> 1 -> 3 (goal with reward 10)
-            agent.update(0, 3, 0.0, 1);  // Move right: 0 -> 1
-            agent.update(1, 1, 10.0, 3); // Move down: 1 -> 3 (goal!)
+            agent.update(0, 3, 0.0, 1, false); // Move right: 0 -> 1
+            agent.update(1, 1, 10.0, 3, true); // Move down: 1 -> 3 (goal!)
         }
 
         std::cout << "   - Q(0,3) = " << agent.get_q_value(0, 3) << std::endl;
