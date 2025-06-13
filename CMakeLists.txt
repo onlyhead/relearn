@@ -12,6 +12,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED On)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(params
     -Wno-reorder
+    -Wno-unused-variable
+    -Wno-unused-parameter
 )
 
 string(TOUPPER ${project_name} project_name_upper)
@@ -69,8 +71,8 @@ if(${project_name_upper}_BUILD_EXAMPLES)
   foreach(src_file IN LISTS exe)
     get_filename_component(exec_name "${src_file}" NAME_WE)
     add_executable(${exec_name} "${src_file}")
+      target_compile_options(${exec_name} PRIVATE ${params})
       foreach(lib_file IN LISTS internal_deps)
-        target_compile_options(${exec_name} PRIVATE ${params})
         target_sources(${exec_name} PRIVATE "${lib_file}")
       endforeach()
     target_link_libraries(${exec_name} ${ext_deps})
@@ -105,8 +107,8 @@ if(${project_name_upper}_ENABLE_TESTS)
   foreach(src_file IN LISTS test_src)
     get_filename_component(test_name "${src_file}" NAME_WE)
     add_executable(${test_name} "${src_file}")
+      target_compile_options(${test_name} PRIVATE ${params})
       foreach(lib_file IN LISTS internal_deps)
-        target_compile_options(${test_name} PRIVATE ${params})
         target_sources(${test_name} PRIVATE "${lib_file}")
       endforeach()
     target_link_libraries(${test_name} ${ext_deps} doctest_with_main)

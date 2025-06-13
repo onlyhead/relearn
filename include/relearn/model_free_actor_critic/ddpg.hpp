@@ -25,8 +25,18 @@ namespace relearn {
 
             // Method signatures to be implemented
             inline void update(const StateType &state, const ActionType &action, double reward,
-                               const StateType &next_state, bool done) { (void)state; (void)action; (void)reward; (void)next_state; (void)done; }
-            inline ActionType select_action(const StateType &state, bool add_noise = true) { (void)state; (void)add_noise; return ActionType{}; }
+                               const StateType &next_state, bool done) {
+                (void)state;
+                (void)action;
+                (void)reward;
+                (void)next_state;
+                (void)done;
+            }
+            inline ActionType select_action(const StateType &state, bool add_noise = true) {
+                (void)state;
+                (void)add_noise;
+                return ActionType{};
+            }
             inline virtual void train_step() { /* Implementation placeholder */ }
             inline void soft_update_targets() { /* Implementation placeholder */ }
             inline void add_noise_to_action(ActionType &action) { (void)action; }

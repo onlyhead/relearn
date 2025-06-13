@@ -56,7 +56,7 @@ namespace relearn {
                 }
                 position_ = (position_ + 1) % capacity_;
             }
-            
+
             inline std::vector<Transition> sample(size_t batch_size) {
                 std::vector<Transition> batch;
                 std::uniform_int_distribution<size_t> dist(0, buffer_.size() - 1);
@@ -65,77 +65,82 @@ namespace relearn {
                 }
                 return batch;
             }
-            
-            inline size_t size() const {
-                return buffer_.size();
-            }
-            
-            inline bool can_sample(size_t batch_size) const {
-                return buffer_.size() >= batch_size;
-            }
+
+            inline size_t size() const { return buffer_.size(); }
+
+            inline bool can_sample(size_t batch_size) const { return buffer_.size() >= batch_size; }
         };
 
         /**
          * @brief Utility functions for RL algorithms
          */
         class Utils {
-          public:        // Statistical functions
-        inline static double compute_gae(const std::vector<double> &rewards, const std::vector<double> &values,
+          public: // Statistical functions
+            inline static double compute_gae(const std::vector<double> &rewards, const std::vector<double> &values,
                                              double gamma = 0.99, double lambda = 0.95) {
-            (void)rewards; (void)values; (void)gamma; (void)lambda;
-            return 0.0; // Placeholder implementation
-        }
+                (void)rewards;
+                (void)values;
+                (void)gamma;
+                (void)lambda;
+                return 0.0; // Placeholder implementation
+            }
 
-        inline static std::vector<double> compute_returns(const std::vector<double> &rewards, double gamma = 0.99) {
-            std::vector<double> returns(rewards.size());
-            double running_return = 0.0;
-            for (int i = rewards.size() - 1; i >= 0; --i) {
-                running_return = rewards[i] + gamma * running_return;
-                returns[i] = running_return;
+            inline static std::vector<double> compute_returns(const std::vector<double> &rewards, double gamma = 0.99) {
+                std::vector<double> returns(rewards.size());
+                double running_return = 0.0;
+                for (int i = rewards.size() - 1; i >= 0; --i) {
+                    running_return = rewards[i] + gamma * running_return;
+                    returns[i] = running_return;
+                }
+                return returns;
             }
-            return returns;
-        }
 
-        inline static std::vector<double> normalize(const std::vector<double> &values) {
-            if (values.empty()) return values;
-            double sum = 0.0, sum_sq = 0.0;
-            for (double v : values) { sum += v; sum_sq += v * v; }
-            double mean = sum / values.size();
-            double variance = sum_sq / values.size() - mean * mean;
-            double std_dev = std::sqrt(variance + 1e-8);
-            
-            std::vector<double> normalized(values.size());
-            for (size_t i = 0; i < values.size(); ++i) {
-                normalized[i] = (values[i] - mean) / std_dev;
-            }
-            return normalized;
-        }
+            inline static std::vector<double> normalize(const std::vector<double> &values) {
+                if (values.empty())
+                    return values;
+                double sum = 0.0, sum_sq = 0.0;
+                for (double v : values) {
+                    sum += v;
+                    sum_sq += v * v;
+                }
+                double mean = sum / values.size();
+                double variance = sum_sq / values.size() - mean * mean;
+                double std_dev = std::sqrt(variance + 1e-8);
 
-        // Neural network utilities
-        inline static std::vector<double> softmax(const std::vector<double> &logits) {
-            if (logits.empty()) return logits;
-            double max_logit = *std::max_element(logits.begin(), logits.end());
-            std::vector<double> result(logits.size());
-            double sum = 0.0;
-            for (size_t i = 0; i < logits.size(); ++i) {
-                result[i] = std::exp(logits[i] - max_logit);
-                sum += result[i];
+                std::vector<double> normalized(values.size());
+                for (size_t i = 0; i < values.size(); ++i) {
+                    normalized[i] = (values[i] - mean) / std_dev;
+                }
+                return normalized;
             }
-            for (size_t i = 0; i < result.size(); ++i) {
-                result[i] /= sum;
+
+            // Neural network utilities
+            inline static std::vector<double> softmax(const std::vector<double> &logits) {
+                if (logits.empty())
+                    return logits;
+                double max_logit = *std::max_element(logits.begin(), logits.end());
+                std::vector<double> result(logits.size());
+                double sum = 0.0;
+                for (size_t i = 0; i < logits.size(); ++i) {
+                    result[i] = std::exp(logits[i] - max_logit);
+                    sum += result[i];
+                }
+                for (size_t i = 0; i < result.size(); ++i) {
+                    result[i] /= sum;
+                }
+                return result;
             }
-            return result;
-        }
-        
-        inline static double log_sum_exp(const std::vector<double> &values) {
-            if (values.empty()) return 0.0;
-            double max_val = *std::max_element(values.begin(), values.end());
-            double sum = 0.0;
-            for (double v : values) {
-                sum += std::exp(v - max_val);
+
+            inline static double log_sum_exp(const std::vector<double> &values) {
+                if (values.empty())
+                    return 0.0;
+                double max_val = *std::max_element(values.begin(), values.end());
+                double sum = 0.0;
+                for (double v : values) {
+                    sum += std::exp(v - max_val);
+                }
+                return max_val + std::log(sum);
             }
-            return max_val + std::log(sum);
-        }
         };
 
     } // namespace common

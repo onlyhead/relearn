@@ -6,7 +6,7 @@ using namespace relearn;
 
 TEST_CASE("REINFORCE basic functionality") {
     model_free_policy_gradient::REINFORCE<std::vector<double>, std::vector<double>> reinforce;
-    
+
     SUBCASE("Construction") {
         CHECK(true); // Placeholder
     }
@@ -14,7 +14,7 @@ TEST_CASE("REINFORCE basic functionality") {
 
 TEST_CASE("TRPO basic functionality") {
     model_free_policy_gradient::TRPO<std::vector<double>, std::vector<double>> trpo;
-    
+
     SUBCASE("Construction") {
         CHECK(true); // Placeholder
     }
@@ -22,7 +22,7 @@ TEST_CASE("TRPO basic functionality") {
 
 TEST_CASE("PPO basic functionality") {
     model_free_policy_gradient::PPO<std::vector<double>, std::vector<double>> ppo;
-    
+
     SUBCASE("Construction") {
         CHECK(true); // Placeholder
     }
