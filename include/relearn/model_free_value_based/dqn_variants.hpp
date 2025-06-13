@@ -20,7 +20,7 @@ public:
     inline DoubleDQN() = default;
     
     // Override methods to implement Double DQN logic
-    inline void train_step() override;
+    inline void train_step() override { /* Double DQN-specific implementation placeholder */ }
 };
 
 /**

@@ -19,13 +19,14 @@ namespace relearn {
 
           public:
             inline DQN() = default;
+            virtual ~DQN() = default;
 
             // Method signatures to be implemented
             inline void update(const StateType &state, const ActionType &action, double reward,
-                               const StateType &next_state, bool done);
-            inline ActionType select_action(const StateType &state, double epsilon = 0.1);
-            inline void train_step();
-            inline void update_target_network();
+                               const StateType &next_state, bool done) { (void)state; (void)action; (void)reward; (void)next_state; (void)done; }
+            inline ActionType select_action(const StateType &state, double epsilon = 0.1) { (void)state; (void)epsilon; return ActionType{}; }
+            inline virtual void train_step() { /* Implementation placeholder */ }
+            inline void update_target_network() { /* Implementation placeholder */ }
         };
 
     } // namespace model_free_value_based
