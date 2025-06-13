@@ -217,11 +217,10 @@ TEST_CASE("Advanced Q-Learning - Reward Shaping") {
 
     // Set reward shaping that doubles rewards
     agent.set_reward_shaping([](double reward) { return reward * 2.0; });
-
     agent.update(0, 1, 5.0, 1, false); // Shaped to 10.0
 
-    // Q-value should reflect shaped reward
-    CHECK(agent.get_q_value(0, 1) == doctest::Approx(2.0)); // 0.1 * (10.0 + 0)
+    // Q-value should reflect shaped reward: Q(s,a) = 0 + 0.1 * (10.0 + 0.9 * 0 - 0) = 1.0
+    CHECK(agent.get_q_value(0, 1) == doctest::Approx(1.0));
 }
 
 TEST_CASE("Advanced Q-Learning - Statistics Tracking") {
@@ -282,8 +281,9 @@ TEST_CASE("Advanced Q-Learning - Thread Safety") {
 
     // Launch multiple threads doing updates
     for (int i = 0; i < num_threads; ++i) {
-        threads.emplace_back([&shared_agent, updates_per_thread, i]() {
-            for (int j = 0; j < updates_per_thread; ++j) {
+        threads.emplace_back([&shared_agent, i]() {
+            constexpr int updates = 100;
+            for (int j = 0; j < updates; ++j) {
                 int state = (i * 1000 + j) % 10;
                 int action = j % 4;
                 shared_agent.update(state, action, 1.0, (state + 1) % 10, false);
@@ -298,8 +298,8 @@ TEST_CASE("Advanced Q-Learning - Thread Safety") {
     }
 
     auto stats = shared_agent.get_statistics();
-    CHECK(stats.total_updates == num_threads * updates_per_thread);
-    CHECK(stats.total_actions == num_threads * updates_per_thread);
+    CHECK(stats.total_updates == num_threads * 100);
+    CHECK(stats.total_actions == num_threads * 100);
     CHECK(shared_agent.get_q_table_size() > 0);
 }
 
