@@ -4,6 +4,8 @@ LATEST_TAG   ?= $(shell git describe --tags --abbrev=0 2>/dev/null)
 TOP_DIR      := $(CURDIR)
 BUILD_DIR    := $(TOP_DIR)/build
 
+SHELL := /bin/bash
+
 ifeq ($(PROJECT_NAME),)
 $(error Error: project_name not found in CMakeLists.txt)
 endif
