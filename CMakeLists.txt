@@ -65,6 +65,10 @@ export(EXPORT ${project_name}Targets
 
 # --------------------------------------------------------------------------------------------------
 if(${project_name_upper}_BUILD_EXAMPLES)
+  FetchContent_Declare(plotter GIT_REPOSITORY https://github.com/onlyhead/plotter.git GIT_TAG 0.2.1)
+  FetchContent_MakeAvailable(plotter)
+  list(APPEND ext_deps plotter::plotter)
+
   file(GLOB exe examples/*.cpp)
   # ----------------------------------------------
   set(exec_names)
