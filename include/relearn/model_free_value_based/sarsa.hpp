@@ -54,8 +54,8 @@ namespace relearn {
                 bool terminal;
                 double importance_weight = 1.0;
 
-                Experience(const StateType &s, const ActionType &a, double r, 
-                          const StateType &ns, const ActionType &na, bool term)
+                Experience(const StateType &s, const ActionType &a, double r, const StateType &ns, const ActionType &na,
+                           bool term)
                     : state(s), action(a), reward(r), next_state(ns), next_action(na), terminal(term) {}
             };
 
@@ -133,9 +133,9 @@ namespace relearn {
              * @brief Constructor with comprehensive configuration
              */
             inline SARSA(double alpha = 0.1, double gamma = 0.95, double epsilon = 0.1,
-                        const std::vector<ActionType> &actions = {},
-                        ExplorationStrategy exploration = ExplorationStrategy::EPSILON_GREEDY,
-                        LearningRateSchedule lr_schedule = LearningRateSchedule::CONSTANT)
+                         const std::vector<ActionType> &actions = {},
+                         ExplorationStrategy exploration = ExplorationStrategy::EPSILON_GREEDY,
+                         LearningRateSchedule lr_schedule = LearningRateSchedule::CONSTANT)
                 : alpha_(alpha), gamma_(gamma), epsilon_(epsilon), exploration_strategy_(exploration),
                   lr_schedule_(lr_schedule), available_actions_(actions), rng_(std::random_device{}()),
                   uniform_dist_(0.0, 1.0) {
@@ -150,8 +150,7 @@ namespace relearn {
              * Key difference from Q-Learning: uses actual next action, not max
              */
             inline void update(const StateType &state, const ActionType &action, double reward,
-                              const StateType &next_state, const ActionType &next_action, 
-                              bool terminal = false) {
+                               const StateType &next_state, const ActionType &next_action, bool terminal = false) {
                 std::lock_guard<std::mutex> lock(table_mutex_);
 
                 auto start_time = std::chrono::high_resolution_clock::now();
@@ -165,7 +164,7 @@ namespace relearn {
                 double current_q = get_q_value_internal(state, action);
                 double next_q = terminal ? 0.0 : get_q_value_internal(next_state, next_action);
                 double td_error = reward + gamma_ * next_q - current_q;
-                
+
                 q_table_[state][action] = current_q + alpha_ * td_error;
 
                 // Update eligibility traces if enabled
@@ -260,9 +259,9 @@ namespace relearn {
 
                 // Sample recent experiences (more on-policy consistent)
                 std::vector<Experience> batch;
-                size_t start_idx = replay_buffer_.size() >= replay_batch_size_ ? 
-                                  replay_buffer_.size() - replay_batch_size_ : 0;
-                
+                size_t start_idx =
+                    replay_buffer_.size() >= replay_batch_size_ ? replay_buffer_.size() - replay_batch_size_ : 0;
+
                 for (size_t i = start_idx; i < replay_buffer_.size(); ++i) {
                     batch.push_back(replay_buffer_[i]);
                 }
@@ -272,7 +271,7 @@ namespace relearn {
                     double current_q = get_q_value_internal(exp.state, exp.action);
                     double next_q = exp.terminal ? 0.0 : get_q_value_internal(exp.next_state, exp.next_action);
                     double td_error = exp.reward + gamma_ * next_q - current_q;
-                    
+
                     q_table_[exp.state][exp.action] = current_q + alpha_ * td_error * exp.importance_weight;
                 }
             }
@@ -333,9 +332,7 @@ namespace relearn {
                 action_mask_ = mask;
             }
 
-            inline void set_reward_shaping(std::function<double(double)> shaping) {
-                reward_shaping_ = shaping;
-            }
+            inline void set_reward_shaping(std::function<double(double)> shaping) { reward_shaping_ = shaping; }
 
             inline void enable_eligibility_traces(double lambda) {
                 use_eligibility_traces_ = true;
@@ -349,13 +346,9 @@ namespace relearn {
                 replay_buffer_.reserve(capacity);
             }
 
-            inline void set_exploration_strategy(ExplorationStrategy strategy) {
-                exploration_strategy_ = strategy;
-            }
+            inline void set_exploration_strategy(ExplorationStrategy strategy) { exploration_strategy_ = strategy; }
 
-            inline void set_learning_rate_schedule(LearningRateSchedule schedule) {
-                lr_schedule_ = schedule;
-            }
+            inline void set_learning_rate_schedule(LearningRateSchedule schedule) { lr_schedule_ = schedule; }
 
             /**
              * @brief Parameter access methods
@@ -364,7 +357,7 @@ namespace relearn {
             inline double get_gamma() const { return gamma_; }
             inline double get_epsilon() const { return epsilon_; }
             inline double get_lambda() const { return lambda_; }
-            inline const Statistics& get_statistics() const { return stats_; }
+            inline const Statistics &get_statistics() const { return stats_; }
 
             inline void set_alpha(double alpha) { alpha_ = std::max(alpha, min_alpha_); }
             inline void set_gamma(double gamma) { gamma_ = std::clamp(gamma, 0.0, 1.0); }
@@ -393,8 +386,7 @@ namespace relearn {
 
                 for (const auto &state_entry : q_table_) {
                     for (const auto &action_entry : state_entry.second) {
-                        file << state_entry.first << " " << action_entry.first 
-                             << " " << action_entry.second << "\n";
+                        file << state_entry.first << " " << action_entry.first << " " << action_entry.second << "\n";
                     }
                 }
             }
@@ -410,7 +402,7 @@ namespace relearn {
                 StateType state;
                 ActionType action;
                 double q_value;
-                
+
                 while (file >> state >> action >> q_value) {
                     q_table_[state][action] = q_value;
                 }
@@ -452,9 +444,9 @@ namespace relearn {
                 return found_valid ? max_q : 0.0;
             }
 
-            inline ActionType epsilon_greedy_selection(const StateType &state, 
-                                                      const std::vector<ActionType> &valid_actions, 
-                                                      bool &explored) const {
+            inline ActionType epsilon_greedy_selection(const StateType &state,
+                                                       const std::vector<ActionType> &valid_actions,
+                                                       bool &explored) const {
                 if (uniform_dist_(rng_) < epsilon_) {
                     explored = true;
                     std::uniform_int_distribution<size_t> dist(0, valid_actions.size() - 1);
@@ -475,9 +467,9 @@ namespace relearn {
                 }
             }
 
-            inline ActionType epsilon_decay_selection(const StateType &state, 
-                                                     const std::vector<ActionType> &valid_actions, 
-                                                     bool &explored) const {
+            inline ActionType epsilon_decay_selection(const StateType &state,
+                                                      const std::vector<ActionType> &valid_actions,
+                                                      bool &explored) const {
                 // Use current epsilon for this selection
                 if (uniform_dist_(rng_) < epsilon_) {
                     explored = true;
@@ -489,9 +481,8 @@ namespace relearn {
                 }
             }
 
-            inline ActionType boltzmann_selection(const StateType &state, 
-                                                 const std::vector<ActionType> &valid_actions, 
-                                                 bool &explored) const {
+            inline ActionType boltzmann_selection(const StateType &state, const std::vector<ActionType> &valid_actions,
+                                                  bool &explored) const {
                 std::vector<double> probabilities;
                 double sum_exp = 0.0;
 
@@ -511,7 +502,7 @@ namespace relearn {
                 // Sample according to probabilities
                 double rand_val = uniform_dist_(rng_);
                 double cumulative = 0.0;
-                
+
                 for (size_t i = 0; i < valid_actions.size(); ++i) {
                     cumulative += probabilities[i];
                     if (rand_val <= cumulative) {
@@ -525,18 +516,17 @@ namespace relearn {
                 return valid_actions.back();
             }
 
-            inline ActionType ucb_selection(const StateType &state, 
-                                           const std::vector<ActionType> &valid_actions, 
-                                           bool &explored) const {
+            inline ActionType ucb_selection(const StateType &state, const std::vector<ActionType> &valid_actions,
+                                            bool &explored) const {
                 ActionType best_action = valid_actions[0];
                 double best_ucb = std::numeric_limits<double>::lowest();
-                size_t total_visits = state_visit_counts_.find(state) != state_visit_counts_.end() ? 
-                                     state_visit_counts_.at(state) : 0;
+                size_t total_visits =
+                    state_visit_counts_.find(state) != state_visit_counts_.end() ? state_visit_counts_.at(state) : 0;
 
                 for (const auto &action : valid_actions) {
                     double q_val = get_q_value_internal(state, action);
                     size_t action_visits = 0;
-                    
+
                     auto state_it = visit_counts_.find(state);
                     if (state_it != visit_counts_.end()) {
                         auto action_it = state_it->second.find(action);
@@ -545,12 +535,11 @@ namespace relearn {
                         }
                     }
 
-                    double ucb_bonus = action_visits > 0 ? 
-                                      ucb_c_ * std::sqrt(std::log(total_visits) / action_visits) : 
-                                      std::numeric_limits<double>::max();
-                    
+                    double ucb_bonus = action_visits > 0 ? ucb_c_ * std::sqrt(std::log(total_visits) / action_visits)
+                                                         : std::numeric_limits<double>::max();
+
                     double ucb_value = q_val + ucb_bonus;
-                    
+
                     if (ucb_value > best_ucb) {
                         best_ucb = ucb_value;
                         best_action = action;
@@ -561,8 +550,8 @@ namespace relearn {
                 return best_action;
             }
 
-            inline ActionType get_greedy_action(const StateType &state, 
-                                               const std::vector<ActionType> &valid_actions) const {
+            inline ActionType get_greedy_action(const StateType &state,
+                                                const std::vector<ActionType> &valid_actions) const {
                 ActionType best_action = valid_actions[0];
                 double best_q = get_q_value_internal(state, best_action);
 
@@ -591,20 +580,19 @@ namespace relearn {
                 for (const auto &state_entry : eligibility_traces_) {
                     for (const auto &action_entry : state_entry.second) {
                         if (action_entry.second > 0.001) { // Only update significant traces
-                            q_table_[state_entry.first][action_entry.first] += 
-                                alpha_ * td_error * action_entry.second;
+                            q_table_[state_entry.first][action_entry.first] += alpha_ * td_error * action_entry.second;
                         }
                     }
                 }
             }
 
             inline void store_experience(const StateType &state, const ActionType &action, double reward,
-                                        const StateType &next_state, const ActionType &next_action, bool terminal) {
+                                         const StateType &next_state, const ActionType &next_action, bool terminal) {
                 if (replay_buffer_.size() >= replay_buffer_capacity_) {
                     // Remove oldest experience (circular buffer)
                     replay_buffer_.erase(replay_buffer_.begin());
                 }
-                
+
                 replay_buffer_.emplace_back(state, action, reward, next_state, next_action, terminal);
             }
 
@@ -631,7 +619,7 @@ namespace relearn {
                     }
                     break;
                 }
-                
+
                 // Handle epsilon decay if using epsilon decay strategy
                 if (exploration_strategy_ == ExplorationStrategy::EPSILON_DECAY) {
                     epsilon_ = std::max(epsilon_ * epsilon_decay_, min_epsilon_);

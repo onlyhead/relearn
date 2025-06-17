@@ -1,3 +1,4 @@
+#include <doctest/doctest.h>
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -8,68 +9,19 @@
 
 using namespace relearn::model_free_value_based;
 
-// Simple test framework for Q-Learning basic functionality
-namespace test_utils {
-    int test_count = 0;
-    int pass_count = 0;
-
-    void assert_true(bool condition, const std::string &message) {
-        test_count++;
-        if (condition) {
-            pass_count++;
-            std::cout << "✓ PASS: " << message << std::endl;
-        } else {
-            std::cout << "✗ FAIL: " << message << std::endl;
-        }
-    }
-
-    void assert_near(double actual, double expected, double tolerance, const std::string &message) {
-        test_count++;
-        bool condition = std::abs(actual - expected) < tolerance;
-        if (condition) {
-            pass_count++;
-            std::cout << "✓ PASS: " << message << " (expected: " << expected << ", actual: " << actual << ")"
-                      << std::endl;
-        } else {
-            std::cout << "✗ FAIL: " << message << " (expected: " << expected << ", actual: " << actual << ")"
-                      << std::endl;
-        }
-    }
-
-    void assert_throws(std::function<void()> func, const std::string &message) {
-        test_count++;
-        try {
-            func();
-            std::cout << "✗ FAIL: " << message << " (expected exception but none thrown)" << std::endl;
-        } catch (...) {
-            pass_count++;
-            std::cout << "✓ PASS: " << message << " (exception correctly thrown)" << std::endl;
-        }
-    }
-
-    void print_summary() {
-        std::cout << "\n=== Test Summary ===" << std::endl;
-        std::cout << "Total tests: " << test_count << std::endl;
-        std::cout << "Passed: " << pass_count << std::endl;
-        std::cout << "Failed: " << (test_count - pass_count) << std::endl;
-        std::cout << "Success rate: " << (100.0 * pass_count / test_count) << "%" << std::endl;
-    }
-} // namespace test_utils
-
-void test_constructor_validation() {
-    std::cout << "\n--- Testing Constructor Validation ---" << std::endl;
+TEST_CASE("Q-Learning Basic Functionality - Constructor Validation") {
     std::vector<int> actions = {0, 1, 2, 3};
 
-    // Test valid constructor
-    try {
-        QLearning<int, int> agent(0.1, 0.9, 0.1, actions);
-        test_utils::assert_true(true, "Valid constructor should not throw");
-    } catch (...) {
-        test_utils::assert_true(false, "Valid constructor should not throw");
+    SUBCASE("Valid constructor should not throw") {
+        CHECK_NOTHROW(QLearning<int, int> agent(0.1, 0.9, 0.1, actions));
     }
 
-    // Test invalid learning rate (these should work for now, validation might be added later)
-    test_utils::assert_true(true, "Constructor validation tests completed");
+    SUBCASE("Constructor creates agent with correct parameters") {
+        QLearning<int, int> agent(0.1, 0.9, 0.1, actions);
+        CHECK(agent.get_learning_rate() == doctest::Approx(0.1));
+        CHECK(agent.get_discount_factor() == doctest::Approx(0.9));
+        CHECK(agent.get_epsilon() == doctest::Approx(0.1));
+    }
 }
 
 void test_basic_learning_update() {
