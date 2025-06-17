@@ -69,28 +69,28 @@ if(${project_name_upper}_BUILD_EXAMPLES)
   FetchContent_MakeAvailable(plotter)
   list(APPEND ext_deps plotter::plotter)
 
-  file(GLOB exe examples/*.cpp)
-  # ----------------------------------------------
+  file(GLOB_RECURSE exe CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/examples/*.cpp")
+
   set(exec_names)
   foreach(src_file IN LISTS exe)
     get_filename_component(exec_name "${src_file}" NAME_WE)
     add_executable(${exec_name} "${src_file}")
-      target_compile_options(${exec_name} PRIVATE ${params})
-      foreach(lib_file IN LISTS internal_deps)
-        target_sources(${exec_name} PRIVATE "${lib_file}")
-      endforeach()
+    target_compile_options(${exec_name} PRIVATE ${params})
+    foreach(lib_file IN LISTS internal_deps)
+      target_sources(${exec_name} PRIVATE "${lib_file}")
+    endforeach()
     target_link_libraries(${exec_name} ${ext_deps})
     install(TARGETS ${exec_name} DESTINATION bin)
     list(APPEND exec_names ${exec_name})
   endforeach()
-  # ----------------------------------------------
+
   foreach(exec IN LISTS exec_names)
     file(REMOVE "${CMAKE_CURRENT_LIST_DIR}/.execs")
     file(WRITE "${CMAKE_CURRENT_LIST_DIR}/.execs")
     get_filename_component(exec_name "${exec}" NAME)
     file(APPEND "${CMAKE_CURRENT_LIST_DIR}/.execs" "${CMAKE_CURRENT_LIST_DIR}/build/${exec_name}\n")
   endforeach()
-  # ----------------------------------------------
+
   install(TARGETS
     ${exec_names}
     DESTINATION lib/${PROJECT_NAME}
@@ -106,15 +106,15 @@ if(${project_name_upper}_ENABLE_TESTS)
   FetchContent_Declare(DocTest GIT_REPOSITORY "https://github.com/onqtam/doctest")
   FetchContent_MakeAvailable(DocTest)
 
-  file(GLOB test_src test/*.cpp)
+  file(GLOB_RECURSE test_src CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp")
 
   foreach(src_file IN LISTS test_src)
     get_filename_component(test_name "${src_file}" NAME_WE)
     add_executable(${test_name} "${src_file}")
-      target_compile_options(${test_name} PRIVATE ${params})
-      foreach(lib_file IN LISTS internal_deps)
-        target_sources(${test_name} PRIVATE "${lib_file}")
-      endforeach()
+    target_compile_options(${test_name} PRIVATE ${params})
+    foreach(lib_file IN LISTS internal_deps)
+      target_sources(${test_name} PRIVATE "${lib_file}")
+    endforeach()
     target_link_libraries(${test_name} ${ext_deps} doctest_with_main)
     add_test(NAME ${test_name} COMMAND ${test_name})
   endforeach()

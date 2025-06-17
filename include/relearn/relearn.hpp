@@ -12,9 +12,12 @@
 #include "common/base.hpp"
 
 // Model-Free, Value-Based algorithms
+#include "model_free_value_based/advanced_algorithms.hpp"
 #include "model_free_value_based/dqn.hpp"
 #include "model_free_value_based/dqn_variants.hpp"
+#include "model_free_value_based/expected_sarsa.hpp"
 #include "model_free_value_based/q_learning.hpp"
+#include "model_free_value_based/sarsa.hpp"
 
 // Model-Free, Policy-Gradient algorithms
 #include "model_free_policy_gradient/ppo.hpp"
@@ -31,6 +34,7 @@
 #include "model_based/dreamer_pets.hpp"
 #include "model_based/mbpo.hpp"
 #include "model_based/pilco.hpp"
+#include "model_based/planning_algorithms.hpp"
 
 // Imitation & Inverse RL algorithms
 #include "imitation_inverse/behavioral_cloning.hpp"
@@ -43,6 +47,13 @@
 
 // Evolutionary & Black-Box Methods
 #include "evolutionary_blackbox/cmaes_nes.hpp"
+
+// Multi-Agent Reinforcement Learning
+#include "multi_agent/cooperative_learning.hpp"
+#include "multi_agent/joint_learning.hpp"
+
+// Advanced Exploration Strategies
+#include "common/advanced_exploration.hpp"
 
 /**
  * @namespace relearn

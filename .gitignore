@@ -35,3 +35,4 @@ build/
 
 *.swp
 tests/catch.hpp
+external
