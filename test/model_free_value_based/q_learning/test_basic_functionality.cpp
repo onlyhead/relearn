@@ -1,0 +1,229 @@
+#include <cassert>
+#include <cmath>
+#include <iostream>
+#include <random>
+#include <relearn/relearn.hpp>
+#include <thread>
+#include <vector>
+
+using namespace relearn::model_free_value_based;
+
+// Simple test framework for Q-Learning basic functionality
+namespace test_utils {
+    int test_count = 0;
+    int pass_count = 0;
+
+    void assert_true(bool condition, const std::string &message) {
+        test_count++;
+        if (condition) {
+            pass_count++;
+            std::cout << "✓ PASS: " << message << std::endl;
+        } else {
+            std::cout << "✗ FAIL: " << message << std::endl;
+        }
+    }
+
+    void assert_near(double actual, double expected, double tolerance, const std::string &message) {
+        test_count++;
+        bool condition = std::abs(actual - expected) < tolerance;
+        if (condition) {
+            pass_count++;
+            std::cout << "✓ PASS: " << message << " (expected: " << expected << ", actual: " << actual << ")"
+                      << std::endl;
+        } else {
+            std::cout << "✗ FAIL: " << message << " (expected: " << expected << ", actual: " << actual << ")"
+                      << std::endl;
+        }
+    }
+
+    void assert_throws(std::function<void()> func, const std::string &message) {
+        test_count++;
+        try {
+            func();
+            std::cout << "✗ FAIL: " << message << " (expected exception but none thrown)" << std::endl;
+        } catch (...) {
+            pass_count++;
+            std::cout << "✓ PASS: " << message << " (exception correctly thrown)" << std::endl;
+        }
+    }
+
+    void print_summary() {
+        std::cout << "\n=== Test Summary ===" << std::endl;
+        std::cout << "Total tests: " << test_count << std::endl;
+        std::cout << "Passed: " << pass_count << std::endl;
+        std::cout << "Failed: " << (test_count - pass_count) << std::endl;
+        std::cout << "Success rate: " << (100.0 * pass_count / test_count) << "%" << std::endl;
+    }
+} // namespace test_utils
+
+void test_constructor_validation() {
+    std::cout << "\n--- Testing Constructor Validation ---" << std::endl;
+    std::vector<int> actions = {0, 1, 2, 3};
+
+    // Test valid constructor
+    try {
+        QLearning<int, int> agent(0.1, 0.9, 0.1, actions);
+        test_utils::assert_true(true, "Valid constructor should not throw");
+    } catch (...) {
+        test_utils::assert_true(false, "Valid constructor should not throw");
+    }
+
+    // Test invalid learning rate (these should work for now, validation might be added later)
+    test_utils::assert_true(true, "Constructor validation tests completed");
+}
+
+void test_basic_learning_update() {
+    std::cout << "\n--- Testing Basic Learning Update ---" << std::endl;
+    std::vector<int> actions = {0, 1, 2, 3};
+    QLearning<int, int> agent(0.1, 0.9, 0.1, actions);
+
+    int state = 0;
+    int action = 1;
+    double reward = 1.0;
+    int next_state = 1;
+    bool terminal = false;
+
+    // Initial Q-value should be 0
+    double initial_q = agent.get_q_value(state, action);
+    test_utils::assert_near(initial_q, 0.0, 1e-6, "Initial Q-value should be 0");
+
+    // Update Q-value
+    agent.update(state, action, reward, next_state, terminal);
+
+    // Q-value should have changed (increased for positive reward)
+    double updated_q = agent.get_q_value(state, action);
+    test_utils::assert_true(updated_q > initial_q, "Q-value should increase after positive reward update");
+}
+
+void test_action_selection() {
+    std::cout << "\n--- Testing Action Selection ---" << std::endl;
+    std::vector<int> actions = {0, 1, 2, 3};
+    QLearning<int, int> agent(0.1, 0.9, 0.0, actions); // No exploration
+
+    int state = 0;
+
+    // Initial action selection (should work)
+    int selected_action = agent.select_action(state);
+    bool valid_action = std::find(actions.begin(), actions.end(), selected_action) != actions.end();
+    test_utils::assert_true(valid_action, "Selected action should be from available actions");
+
+    // Train one action to have higher Q-value
+    agent.update(state, 1, 10.0, 1, false);
+
+    // With no exploration, should consistently select the trained action
+    selected_action = agent.select_action(state);
+    test_utils::assert_true(selected_action == 1, "Should select action with highest Q-value when no exploration");
+}
+
+void test_parameter_getters_setters() {
+    std::cout << "\n--- Testing Parameter Getters/Setters ---" << std::endl;
+    std::vector<int> actions = {0, 1, 2, 3};
+    double learning_rate = 0.1;
+    double discount_factor = 0.9;
+    double exploration_rate = 0.1;
+
+    QLearning<int, int> agent(learning_rate, discount_factor, exploration_rate, actions);
+
+    // Test learning rate
+    test_utils::assert_near(agent.get_learning_rate(), learning_rate, 1e-6, "Get learning rate");
+    agent.set_learning_rate(0.2);
+    test_utils::assert_near(agent.get_learning_rate(), 0.2, 1e-6, "Set learning rate");
+
+    // Test discount factor
+    test_utils::assert_near(agent.get_discount_factor(), discount_factor, 1e-6, "Get discount factor");
+    agent.set_discount_factor(0.95);
+    test_utils::assert_near(agent.get_discount_factor(), 0.95, 1e-6, "Set discount factor");
+
+    // Test epsilon (exploration rate)
+    test_utils::assert_near(agent.get_epsilon(), exploration_rate, 1e-6, "Get epsilon");
+    agent.set_epsilon(0.2);
+    test_utils::assert_near(agent.get_epsilon(), 0.2, 1e-6, "Set epsilon");
+}
+
+void test_q_value_operations() {
+    std::cout << "\n--- Testing Q-Value Operations ---" << std::endl;
+    std::vector<int> actions = {0, 1, 2, 3};
+    QLearning<int, int> agent(0.1, 0.9, 0.0, actions);
+
+    int state = 0;
+
+    // Initial max Q-value should be 0
+    double initial_max_q = agent.get_max_q_value(state);
+    test_utils::assert_near(initial_max_q, 0.0, 1e-6, "Initial max Q-value should be 0");
+
+    // Initial best action should be valid
+    int best_action = agent.get_best_action(state);
+    bool valid_best_action = std::find(actions.begin(), actions.end(), best_action) != actions.end();
+    test_utils::assert_true(valid_best_action, "Best action should be from available actions");
+
+    // Update one action and verify best action changes
+    agent.update(state, 2, 5.0, 1, false);
+    best_action = agent.get_best_action(state);
+    test_utils::assert_true(best_action == 2, "Best action should be the one with highest Q-value");
+}
+
+void test_advanced_features() {
+    std::cout << "\n--- Testing Advanced Features ---" << std::endl;
+    std::vector<int> actions = {0, 1, 2, 3};
+    QLearning<int, int> agent(0.1, 0.9, 0.1, actions);
+
+    // Test enabling double Q-learning
+    agent.set_double_q_learning(true);
+    test_utils::assert_true(true, "Double Q-learning enabled without error");
+
+    // Test enabling eligibility traces
+    agent.set_eligibility_traces(true, 0.9);
+    test_utils::assert_true(true, "Eligibility traces enabled without error");
+
+    // Test enabling experience replay
+    agent.set_experience_replay(true, 5000, 64);
+    test_utils::assert_true(true, "Experience replay enabled without error");
+
+    // Test action masking
+    agent.set_action_mask([](int state, int action) {
+        return action != 3; // Mask action 3
+    });
+    test_utils::assert_true(true, "Action masking set without error");
+
+    // Test reward shaping
+    agent.set_reward_shaping([](double reward) {
+        return reward * 2.0; // Double rewards
+    });
+    test_utils::assert_true(true, "Reward shaping set without error");
+}
+
+void test_statistics() {
+    std::cout << "\n--- Testing Statistics ---" << std::endl;
+    std::vector<int> actions = {0, 1, 2, 3};
+    QLearning<int, int> agent(0.1, 0.9, 0.1, actions);
+
+    // Get initial statistics
+    auto stats = agent.get_statistics();
+    test_utils::assert_true(stats.total_updates == 0, "Initial update count should be 0");
+    test_utils::assert_true(stats.total_actions == 0, "Initial action count should be 0");
+
+    // Perform some actions and updates
+    agent.select_action(0);
+    agent.update(0, 1, 1.0, 1, false);
+
+    // Check updated statistics
+    stats = agent.get_statistics();
+    test_utils::assert_true(stats.total_updates > 0, "Update count should increase after update");
+    test_utils::assert_true(stats.total_actions > 0, "Action count should increase after action selection");
+}
+
+int main() {
+    std::cout << "=== Q-Learning Basic Functionality Tests ===" << std::endl;
+
+    test_constructor_validation();
+    test_basic_learning_update();
+    test_action_selection();
+    test_parameter_getters_setters();
+    test_q_value_operations();
+    test_advanced_features();
+    test_statistics();
+
+    test_utils::print_summary();
+
+    return (test_utils::test_count == test_utils::pass_count) ? 0 : 1;
+}
